@@ -1,0 +1,102 @@
+---
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Marcelo Perazolo <mperazol@us.ibm.com>
+#---
+
+# Kibana is not supported on ppc64le.yml, no deb package is provided.
+# Kibana is written in nodejs, so we will download the x86 tar.gz
+# image and replace the nodejs binary with the ppc64le binrary.
+
+- name: include ppc64le vars
+  include_vars: ppc64le.yml
+
+- name: create the Kibana system user
+  user:
+    name: "kibana"
+    shell: "/bin/bash"
+    system: "yes"
+    createhome: "no"
+
+- name: create temporary directory for install
+  file:
+    path: "{{ temp_install_directory }}"
+    state: directory
+
+- name: verify if deb/rpm package exists
+  stat:
+    path: "/tmp/{{ item.file }}"
+  with_items: "{{ kibana_packages }}"
+  register: file_stat
+
+- name: download deb/rpm package
+  get_url:
+    url: "{{ item.item.url }}/{{ item.item.file }}"
+    dest: "/tmp/{{ item.item.file }}"
+  when: item.stat.exists == False
+  with_items: "{{ file_stat.results }}"
+  register: kibana_download
+  until: kibana_download is success
+  retries: 5
+  delay: 2
+
+- name: extract Kibana
+  unarchive:
+    src: "/tmp/{{ item.file }}"
+    dest: "{{ temp_install_directory }}"
+    owner: "root"
+    group: "root"
+    copy: no
+  with_items: "{{ kibana_packages }}"
+
+- name: make sure /opt exists
+  file:
+    path: "/opt"
+    state: directory
+
+- name: move the Kibana directory to /opt/kibana
+  command: "mv {{ temp_install_directory }}/{{ kibana_extract_name }} /opt/kibana"
+  args:
+    creates: /opt/kibana
+
+- name: move the nodejs binary to /opt/kibana/node/bin
+  copy:
+    src: "{{ temp_install_directory }}/{{ nodejs_extract_name }}/bin/node"
+    dest: "/opt/kibana/node/bin"
+    remote_src: True
+
+- name: set permissions on /opt/kibana
+  file:
+    path: "/opt/kibana"
+    state: "directory"
+    recurse: "yes"
+    owner: "kibana"
+    group: "root"
+
+- name: delete temporary directory
+  file:
+    path: "{{ temp_install_directory }}"
+    state: absent
+
+- name: lay down Kibana service file
+  copy:
+    src: "kibana"
+    dest: "/etc/init.d/kibana"
+    mode: 0755
+
+#- name: remove deb/rpm file
+#  file:
+#    path: "/tmp/{{ item.file }}"
+#    state: absent
+#  with_items: "{{ kibana_packages }}"
+

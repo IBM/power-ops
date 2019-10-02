@@ -1,0 +1,11 @@
+{
+  "title": "CRASSD EVENTS PER CALLHOME,SERVICEABLE",
+  "visState": "{\"title\":\"CRASSD EVENTS PER CALLHOME,SERVICEABLE\",\"type\":\"pie\",\"params\":{\"addTooltip\":true,\"addLegend\":true,\"legendPosition\":\"right\",\"isDonut\":true,\"type\":\"pie\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"3\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"segment\",\"params\":{\"field\":\"data.callHome.keyword\",\"size\":2,\"order\":\"desc\",\"orderBy\":\"1\"}},{\"id\":\"4\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"segment\",\"params\":{\"field\":\"data.serviceable.keyword\",\"size\":2,\"order\":\"desc\",\"orderBy\":\"1\"}}],\"listeners\":{}}",
+  "uiStateJSON": "{\"vis\":{\"legendOpen\":true}}",
+  "description": "",
+  "savedSearchId": "CRASSD-EVENTS",
+  "version": 1,
+  "kibanaSavedObjectMeta": {
+    "searchSourceJSON": "{\"filter\":[]}"
+  }
+}

@@ -1,0 +1,46 @@
+#This file provides a list of servers to monitor.
+#The ibm-crassd service will poll the alerts of these nodes and forward it to the specified plugin below. 
+#If push notifications are supported by the bmc they will be automatically used. 
+
+#----Current Nodes
+[nodes]
+{% for node in nodes %}
+node{{ loop.index }} = { "bmcHostname": "{{ node.bmcHostname }}", "xcatNodeName": "{{ node.xcatNodeName }}", "accessType": "{{ node.accessType}}", "username": "{{ node.username }}", "password": "{{ node.password }}" }
+{% endfor %}
+
+[base_configuration]
+#the maximum number of worker threads to use for processing alerts
+maxThreads = 5
+enableTelemetry = True
+telemetryPort = 53322
+enableDebugMsgs = False
+
+[notify]
+#Plugins to enable for notification
+#CSM=False
+#CSMfunction=notifyCSM
+#ESS=False
+#ESSfunction=notifymmhealth
+logstash=True
+logstashfunction=notifyLogstash
+
+#[csm]
+#Setup the IP and port for CSM restd service
+#host=127.0.0.1
+#port=4213
+
+[logstash]
+#setup the IP and port for the Logstash Instance
+host={{ crassd_logstash_host }}
+port={{ crassd_logstash_port }}
+
+[lastReports]
+fileLoc=/opt/ibm/ras/etc
+
+[analysis]
+#setup analysis script functionality
+#clear option will automatically delete log entries, and not report the upstream to various plugins
+#filter option will not report log entries upstream to the various plugins
+#disable will completely disable the analysis script
+FQPSPAA0001M=clear
+FQPSPPW0034M=filter

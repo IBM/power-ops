@@ -1,0 +1,10 @@
+{
+  "title": "SSH AUTHENTICATIONS",
+  "visState": "{\n  \"title\": \"SSH AUTHENTICATIONS\",\n  \"type\": \"pie\",\n  \"params\": {\n    \"shareYAxis\": true,\n    \"addTooltip\": true,\n    \"addLegend\": true,\n    \"isDonut\": false\n  },\n  \"aggs\": [\n    {\n      \"id\": \"1\",\n      \"type\": \"count\",\n      \"schema\": \"metric\",\n      \"params\": {}\n    },\n    {\n      \"id\": \"2\",\n      \"type\": \"terms\",\n      \"schema\": \"segment\",\n      \"params\": {\n        \"field\": \"tags.keyword\",\n        \"include\": {\n          \"pattern\": \"ssh_successful_login|ssh_failed_login|ssh_brute_force\"\n        },\n        \"size\": 10,\n        \"order\": \"desc\",\n        \"orderBy\": \"1\"\n      }\n    }\n  ],\n  \"listeners\": {}\n}",
+  "uiStateJSON": "{}",
+  "description": "",
+  "version": 1,
+  "kibanaSavedObjectMeta": {
+    "searchSourceJSON": "{\n  \"index\": \"logstash-*\",\n  \"query\": {\n    \"query_string\": {\n      \"query\": \"tags:(ssh_successful_login OR ssh_failed_login OR ssh_brute_force)\",\n      \"analyze_wildcard\": true\n    }\n  },\n  \"filter\": []\n}"
+  }
+}

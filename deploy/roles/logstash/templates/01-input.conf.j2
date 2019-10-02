@@ -1,0 +1,25 @@
+input {
+#  syslog {
+#    port => 5544
+#    tags => [ "logstash-input-syslog" ]
+#  }
+#  tcp {
+#    port => 5140
+#    codec => json
+#    tags => [ "logstash-input-tcp" ]
+#  }
+#  udp {
+#    port => 5144
+#    codec => json
+#    tags => [ "logstash-input-udp" ]
+#  }
+  beats {
+    port => 5044
+    tags => [ "logstash-input-beats" ]
+  }
+  tcp {
+    port => 5148
+    codec => json
+    tags => [ "crassd", "logstash-input-crassd" ]
+  }
+}

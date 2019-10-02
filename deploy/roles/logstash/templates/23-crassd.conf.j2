@@ -1,0 +1,8 @@
+filter {
+  if "crassd" in [tags] {
+    date {
+      match => [ "timestamp", "UNIX" ]
+      target => "@timestamp"
+    }
+  }
+}

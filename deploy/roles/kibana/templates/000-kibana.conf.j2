@@ -1,0 +1,34 @@
+<VirtualHost *:{{ kibana_ssl_port }}>
+    LogLevel  {{  kibana_log_level|default('info') }}
+    ErrorLog  {{ apache_logs }}/kibana-error.log
+    CustomLog {{ apache_logs }}/ssl_access.log combined
+    Options +FollowSymLinks
+
+    SSLEngine on
+    SSLCompression off
+    SSLCertificateFile    {{ kibana_ssl_cert }}
+    SSLCertificateKeyFile {{ kibana_ssl_key }}
+    SSLCACertificatePath  {{ kibana_ssl_cert_path }}
+    SSLCARevocationPath   {{ kibana_ssl_cert_path }}
+    SSLProtocol {{ kibana_ssl_protocol }}
+    SSLHonorCipherOrder On
+    SSLCipherSuite {{ kibana_ssl_cipher_suite }}
+    SetEnvIf User-Agent ".*MSIE.*" nokeepalive ssl-unclean-shutdown
+
+    <Proxy *>
+        Order Allow,Deny
+        Allow from all
+        AuthType Basic
+        AuthName Kibana
+        AuthUserFile /etc/httpd/users
+        Require user kibana
+    </Proxy>
+
+    ProxyRequests Off
+    ProxyPass / http://127.0.0.1:{{ kibana_app_port }}
+    ProxyPassReverse / http://127.0.0.1:{{ kibana_app_port }}
+    RewriteEngine On
+    RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_FILENAME} !-f
+    RewriteRule .* http://127.0.0.1:{{ kibana_app_port }}%{REQUEST_URI} [P,QSA]
+
+</VirtualHost>

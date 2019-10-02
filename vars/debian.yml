@@ -1,0 +1,39 @@
+---
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Marcelo Perazolo <mperazol@us.ibm.com>
+#---
+
+# OS-dependent settings
+
+packages:
+  - "python"
+  - "python-setuptools"
+  - "python-pip"
+  - "python3"
+  - "python3-setuptools"
+  - "python3-pip"
+  - "rsync"
+  - "sshpass"
+  - "git"
+
+mypassword: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          38666264346432653338373835643238366236343135626365343666303666373038373565393937
+          3766336261633965613766356262306139313235363030340a323466386365313463653636323134
+          38323862653862373737323663613630373030653764346631653864623934396263383034376364
+          3461653032353039610a393039393166333561343331343531353662313632323934616162356662
+          6165
+  
+sshdir: "~/.ssh"
+

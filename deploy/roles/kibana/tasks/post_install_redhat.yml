@@ -1,0 +1,83 @@
+---
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Marcelo Perazolo <mperazol@us.ibm.com>
+#---
+
+- name: clear Apache configuration
+  file:
+    state: "absent"
+    path: "/etc/apache2"
+  notify:
+    - Restart Apache
+
+- name: link /etc/apache2 to httpd
+  file:
+    state: "link"
+    src: "/etc/httpd"
+    dest: "/etc/apache2"
+    owner: "root"
+    group: "root"
+
+- name: prepare folders
+  file:
+    path: /etc/httpd/sites-{{ item }}
+    state: directory
+  with_items:
+    - available
+    - enabled
+
+- name: configure Apache
+  template:
+    src: "{{ item.file }}.j2"
+    dest: "{{ item.path }}/{{ item.file }}"
+    owner: "root"
+    group: "root"
+  with_items:
+    - { file: "000-kibana.conf", path: "/etc/httpd/sites-available" }
+    - { file: "ports.conf",      path: "/etc/httpd/conf.d"          }
+  notify: Restart Apache
+
+- name: link tls to ssl
+  file:
+    state: "link"
+    src: "/etc/pki/tls/private"
+    dest: "/etc/ssl/private"
+    owner: "root"
+    group: "root"
+
+- name: enable configuration folder
+  lineinfile:
+    dest: /etc/httpd/conf/httpd.conf
+    line: IncludeOptional sites-enabled/*.conf
+
+- name: enable httpd Service
+  service:
+    name: httpd
+    enabled: yes
+
+- name: comment port 80 in httpd.conf
+  replace:
+    dest: /etc/httpd/conf/httpd.conf
+    regexp: "Listen 80"
+    replace: "#Listen 80"
+
+- name: enable selinux network connections for httpd
+  shell: /usr/sbin/setsebool -P httpd_can_network_connect on
+
+#- name: open firewall port
+#  firewalld:
+#    port: "{{ kibana_ssl_port }}/tcp"
+#    permanent: true
+#    state: enabled
+#    immediate: true

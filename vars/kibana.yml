@@ -1,0 +1,66 @@
+---
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Marcelo Perazolo <mperazol@us.ibm.com>
+#---
+
+kibana_root: /opt/kibana
+
+# for more than one server use:
+# hostvars[groups['controller'][0]]['ansible_default_ipv4']['address']
+
+elasticsearch_http_port: 9200
+elasticsearch_vip: "{{ ansible_host }}"
+elasticsearch_ip: "{{ ansible_host }}"
+
+kibana_packages:
+  - kibana
+
+kibana_apache_modules:
+  - rewrite
+  - ssl
+  - proxy
+  - proxy_http
+
+kibana_debug: False
+kibana_verbose: False
+
+kibana_app_port: 5601
+kibana_ssl_port: 8443
+
+# this is the user:group that kibana runs as
+kibana_service_user: kibana
+kibana_service_group: root
+
+kibana_server_name: "{{ ansible_host }}"
+kibana_self_signed: True
+kibana_log_level: info
+kibana_ssl_cert: '/etc/ssl/certs/apache.cert'
+kibana_ssl_key: '/etc/ssl/private/apache.key'
+kibana_ssl_cert_path: '/etc/ssl/certs'
+kibana_ssl_protocol: '{{ ssl_protocol|default("ALL -SSLv2 -SSLv3") }}'
+kibana_ssl_cipher_suite: '{{ ssl_cipher_suite|default("ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS") }}'
+
+# directories to create
+kibana_directories:
+  - { name: /var/log/kibana, mode: 755 }
+
+kibana_default_dashboard: Infrastructure-events
+kibana_temp_directory: /tmp/kibana
+kibana_password: kibana
+
+beats_dashboards_version: 5.6.16
+beats_dashboards:
+  - { url: "https://artifacts.elastic.co/downloads/beats/beats-dashboards", file: "beats-dashboards-{{ beats_dashboards_version }}.zip" }
+
+metricbeat_index_file: "beats-dashboards-{{ beats_dashboards_version }}/metricbeat/5.x/index-pattern/metricbeat.json"

@@ -1,0 +1,53 @@
+---
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Marcelo Perazolo <mperazol@us.ibm.com>
+#---
+
+- name: modify default netdata configuration
+  replace:
+    path: "/etc/netdata/netdata.conf"
+    after: '\[plugins\]'
+    before: '\[health\]'
+    regexp: '^(\s*)#?(.*){{ item.plugin }}(.*)$'
+    replace: '\1{{ item.plugin }} = {{ item.enabled }}'
+  with_items: "{{ netdata_plugins_map }}"
+  notify: Restart Netdata
+
+- name: ensures python dependencies for crassd plugin
+  pip:
+    name: configparser
+    executable: pip3
+
+- name: deploy netdata crassd plugin configuration
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ netdata_plugins_dir }}/{{ item }}"
+    mode: "0644"
+    owner: "root"
+    group: "netdata"
+  with_items:
+    - crassd.config
+  notify: Restart Netdata
+
+- name: deploy netdata crassd plugin
+  copy:
+    src:  "./{{ item }}"
+    dest: "{{ netdata_plugins_dir }}"
+    mode: "0755"
+    owner: "root"
+    group: "netdata"
+  with_items:
+    - crassd.plugin
+  notify: Restart Netdata
+

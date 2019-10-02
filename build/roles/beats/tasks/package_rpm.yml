@@ -1,0 +1,142 @@
+---
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Marcelo Perazolo <mperazol@us.ibm.com>
+#---
+
+- name: verify if x86_64 rpm file exists
+  stat:
+    path: "{{ dld_dir }}/{{ beat }}-{{ beats_version }}-x86_64.rpm"
+  register: rpm_stat
+  loop: "{{ beats }}"
+  loop_control:
+    loop_var: beat
+    label: "{{ beat }}"
+
+- name: download x86_64 rpm file
+  get_url:
+    url: "{{ beats_package_url }}/{{ result.beat }}/{{ result.beat }}-{{ beats_version }}-x86_64.rpm"
+    dest: "{{ dld_dir }}"
+  register: rpm_download
+  until: rpm_download is success
+  retries: 5
+  delay: 2
+  when: result.stat.exists == False
+  loop: "{{ rpm_stat.results }}"
+  loop_control:
+    loop_var: result
+    label: "{{ result.beat }}"
+
+- name: make rpm_working_dir
+  file:
+    path: "{{ bld_dir }}/rpm/{{ beat }}/BUILDROOT/{{ beat }}-{{ beats_version }}-1.ppc64le"
+    state: directory
+  loop: "{{ beats }}"
+  loop_control:
+    loop_var: beat
+    label: "{{ beat }}"
+
+- name: extract rpm package
+  shell: "rpm2cpio {{ dld_dir }}/{{ beat }}-{{ beats_version }}-x86_64.rpm | cpio -idmv"
+  args:
+    chdir:  "{{ bld_dir }}/rpm/{{ beat }}/BUILDROOT/{{ beat }}-{{ beats_version }}-1.ppc64le"
+    creates: "{{ bld_dir }}/rpm/{{ beat }}/BUILDROOT/{{ beat }}-{{ beats_version }}-1.ppc64le/usr/share/{{ beat }}/bin"
+  loop: "{{ beats }}"
+  loop_control:
+    loop_var: beat
+    label: "{{ beat }}"
+
+- name: copy beat binary into rpm package
+  copy:
+    src: "{{ beats_dir }}/src/github.com/elastic/beats/{{ beat }}/{{ beat }}"
+    dest: "{{ bld_dir }}/rpm/{{ beat }}/BUILDROOT/{{ beat }}-{{ beats_version }}-1.ppc64le/usr/share/{{ beat }}/bin/{{ beat }}"
+    remote_src: True
+    mode: 0755
+  loop: "{{ beats }}"
+  loop_control:
+    loop_var: beat
+    label: "{{ beat }}"
+
+- name: copy filebeat-god into deb package
+  copy:
+    src: "{{ out_dir }}/god-{{ binary_suffix }}"
+    dest: "{{ bld_dir }}/rpm/{{ beat }}/BUILDROOT/{{ beat }}-{{ beats_version }}-1.ppc64le/usr/share/{{ beat }}/bin/{{ beat }}-god"
+    remote_src: True
+    mode: 0755
+  loop: "{{ beats }}"
+  loop_control:
+    loop_var: beat
+    label: "{{ beat }}"
+
+- name: remove the scripts directory since it's not needed
+  file:
+    path: "{{ bld_dir }}/rpm/{{ beat }}/BUILDROOT/{{ beat }}-{{ beats_version }}-1.ppc64le/usr/share/{{ beat }}/scripts"
+    state: absent
+  loop: "{{ beats }}"
+  loop_control:
+    loop_var: beat
+    label: "{{ beat }}"
+
+- name: find list of files for rpm spec
+  find:
+    path: "{{ bld_dir }}/rpm/{{ beat }}/BUILDROOT/{{ beat }}-{{ beats_version }}-1.ppc64le"
+    file_type: file
+    recurse: True
+    hidden: True
+  register: spec_file_list
+  loop: "{{ beats }}"
+  loop_control:
+    loop_var: beat
+    label: "{{ beat }}"
+
+- name: record list of files for rpm spec
+  set_fact:
+    beat_files: "{{ beat_files | default({}) | combine({ beat: { 'files': files } }) }}"
+  vars:
+    prefix: "{{ bld_dir }}/rpm/{{ beat }}/BUILDROOT/{{ beat }}-{{ beats_version }}-1.ppc64le"
+    query: "results[?beat=='{{ beat }}'].files[*].path"
+    files: "{{ spec_file_list | json_query(query) | map('replace', prefix, '') | join(',') }}"
+  loop: "{{ beats }}"
+  loop_control:
+    loop_var: beat
+    label: "{{ beat }}"
+
+- name: create spec file for the package
+  template:
+    src: "{{ beat }}.spec.j2"
+    dest: "{{ bld_dir }}/rpm/{{ beat }}/{{ beat }}.spec"
+  loop: "{{ beats }}"
+  loop_control:
+    loop_var: beat
+    label: "{{ beat }}"
+
+- name: repackage rpm for ppc64el architecture
+  command: "rpmbuild --define '_topdir {{ bld_dir }}/rpm/{{ beat }}' -bb {{ beat }}.spec"
+  args:
+    chdir: "{{ bld_dir }}/rpm/{{ beat }}"
+    creates: "{{ bld_dir }}/rpm/{{ beat }}/RPMS/ppc64le/{{ beat }}-{{ beats_version }}-1.ppc64le.rpm"
+  loop: "{{ beats }}"
+  loop_control:
+    loop_var: beat
+    label: "{{ beat }}"
+
+- name: copy the ppc64el rpm package
+  copy:
+    src:  "{{ bld_dir }}/rpm/{{ beat }}/RPMS/ppc64le/{{ beat }}-{{ beats_version }}-1.ppc64le.rpm"
+    dest:  "{{ out_dir }}/"
+    remote_src: True
+  loop: "{{ beats }}"
+  loop_control:
+    loop_var: beat
+    label: "{{ beat }}"
+

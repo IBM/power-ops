@@ -1,0 +1,45 @@
+---
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Marcelo Perazolo <mperazol@us.ibm.com>
+#---
+
+beats:
+  - filebeat
+  - metricbeat
+
+beats_dir: "{{ bld_dir }}/beats"
+beats_url: https://github.com/elastic/beats.git
+beats_version: 5.6.16
+beats_tag: v{{ beats_version }}
+
+# filebeat
+filebeat_registry_file: "/var/lib/filebeat/registry"
+filebeat_configuration_files:
+  - { src: "filebeat_main.yml.j2", dest: "/etc/filebeat/filebeat.yml"           }
+  - { src: "filebeat_conf.yml.j2", dest: "/etc/filebeat/conf/filebeat_conf.yml" }
+filebeat_conf_file: "{{ filebeat_configuration_files | selectattr('src', 'equalto', 'filebeat_conf.yml.j2') | map(attribute='dest') | join }}"
+filebeat_conf_dir: "{{ filebeat_conf_file | dirname | default('/etc/filebeat/conf') }}"
+filebeat_logstash_port: "{{ logstash_beats_port | default(5044) }}"
+filebeat_logstash_ips: "{{ groups['controller'] | map('extract', hostvars, 'ansible_default_ipv4') | map(attribute='address') | list }}"
+filebeat_logstash_hosts: "{{ filebeat_logstash_ips | map('regex_replace', '(.*)', '\\1:' + filebeat_logstash_port) | join(',') }}"
+
+# metricbeat
+metricbeat_configuration_files:
+  - { src: "metricbeat.yml.j2", dest: "/etc/metricbeat/metricbeat.yml" }
+metricbeat_elasticsearch_port: "{{ elasticsearch_beats_port | default(9200) }}"
+metricbeat_elasticsearch_ips: "{{ groups['controller'] | map('extract', hostvars, 'ansible_default_ipv4') | map(attribute='address') | list }}"
+metricbeat_elasticsearch_hosts: "{{ metricbeat_elasticsearch_ips | map('regex_replace', '(.*)', '\\1:' + metricbeat_elasticsearch_port) | join(',') }}"
+metricbeat_period: 1m
+metricbeat_process_period: 5m
+

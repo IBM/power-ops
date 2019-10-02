@@ -1,0 +1,7 @@
+if [ -s "$MAIL" ]           # This is at Shell startup.  In normal
+then echo "$MAILMSG"        # operation, the Shell checks
+fi                          # periodically.
+
+export BASH_ENV=$HOME/.bashrc
+
+if [ -n "$BASH_ENV" ]; then . "$BASH_ENV"; fi

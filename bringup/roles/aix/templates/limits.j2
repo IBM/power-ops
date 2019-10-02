@@ -1,0 +1,67 @@
+*
+* Sizes are in multiples of 512 byte blocks, CPU time is in seconds
+*
+* fsize      - soft file size in blocks
+* core       - soft core file size in blocks
+* cpu        - soft per process CPU time limit in seconds
+* data       - soft data segment size in blocks
+* stack      - soft stack segment size in blocks
+* rss        - soft real memory usage in blocks
+* nofiles    - soft file descriptor limit
+* fsize_hard - hard file size in blocks
+* core_hard  - hard core file size in blocks
+* cpu_hard   - hard per process CPU time limit in seconds
+* data_hard  - hard data segment size in blocks
+* stack_hard - hard stack segment size in blocks
+* rss_hard   - hard real memory usage in blocks
+* nofiles_hard - hard file descriptor limit
+*
+* The following table contains the default hard values if the
+* hard values are not explicitly defined:
+*
+*   Attribute        Value
+*   ==========    ============
+*   fsize_hard    set to fsize
+*   cpu_hard      set to cpu
+*   core_hard         -1
+*   data_hard         -1
+*   stack_hard      8388608
+*   rss_hard          -1
+*   nofiles_hard      -1
+*
+* NOTE:  A value of -1 implies "unlimited"
+*
+
+default:
+        fsize = -1
+        core = -1
+        cpu = -1
+        data = -1
+        rss = -1
+        stack = 20480
+        stack_hard = 65536
+        nofiles = -1
+
+root:
+        data = -1
+        fsize = -1
+
+daemon:
+
+bin:
+
+sys:
+
+adm:
+
+uucp:
+
+guest:
+
+nobody:
+
+lpd:
+
+esaadmin:
+        stack = 393216
+        stack_hard = 393216

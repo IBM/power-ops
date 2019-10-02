@@ -1,0 +1,11 @@
+{
+  "title": "CRASSD TAG CLOUD PER COMPINSTANCE",
+  "visState": "{\"title\":\"CRASSD TAG CLOUD PER COMPINSTANCE\",\"type\":\"tagcloud\",\"params\":{\"hideLabel\":false,\"maxFontSize\":40,\"minFontSize\":8,\"orientation\":\"single\",\"scale\":\"linear\",\"type\":\"tagcloud\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"segment\",\"params\":{\"field\":\"data.compInstance.keyword\",\"size\":100,\"order\":\"desc\",\"orderBy\":\"1\"}}],\"listeners\":{}}",
+  "uiStateJSON": "{}",
+  "description": "",
+  "savedSearchId": "CRASSD-EVENTS-WITH-COMPINSTANCE",
+  "version": 1,
+  "kibanaSavedObjectMeta": {
+    "searchSourceJSON": "{\"filter\":[]}"
+  }
+}

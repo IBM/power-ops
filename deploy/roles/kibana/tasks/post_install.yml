@@ -1,0 +1,96 @@
+---
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Marcelo Perazolo <mperazol@us.ibm.com>
+#---
+
+- name: deploy Kibana service configuration
+  template:
+    src: "{{ item }}.j2"
+    dest: "/etc/default/{{ item }}"
+    owner: "root"
+    group: "root"
+  with_items:
+    - kibana
+
+- name: ensure config_dir exists
+  file:
+    path: "{{ config_dir }}"
+    state: "directory"
+
+- name: deploy Kibana configuration
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ config_dir }}/{{ item }}"
+    owner: "root"
+    group: "root"
+  with_items:
+    - kibana.yml
+  notify:
+    - Restart Kibana
+
+- name: os dependent post install
+  include_tasks: "post_install_{{ ansible_os_family | lower }}.yml"
+
+- name: remove Apache default site
+  file:
+    state: "absent"
+    path: "/etc/httpd/sites-enabled/000-default.conf"
+  notify:
+    - Restart Apache
+
+- name: create Apache user for kibana
+  htpasswd:
+    path: "/etc/httpd/users"
+    name: "kibana"
+    password: "{{ opsmgr_kibana_password | default(kibana_password) }}"
+    owner: "root"
+    group: "{{ apache_group }}"
+    mode: "0640"
+    create: "yes"
+    state: "present"
+  notify:
+    - Restart Apache
+
+- name: link Apache default site for kibana
+  file:
+    state: "link"
+    src: "/etc/httpd/sites-available/000-kibana.conf"
+    dest: "/etc/httpd/sites-enabled/000-kibana.conf"
+    owner: "root"
+    group: "root"
+  notify:
+    - Restart Apache
+
+- name: create self-signed SSL cert
+  command: >
+    openssl req -new -nodes -x509 -subj
+    "/C=US/ST=Texas/L=San Antonio/O=IT/CN={{ kibana_server_name }}"
+    -days 365
+    -keyout /etc/ssl/private/apache.key
+    -out /etc/ssl/certs/apache.cert
+    -extensions v3_ca
+    creates=/etc/ssl/certs/apache.cert
+  when: kibana_self_signed is defined and kibana_self_signed == true
+  notify:
+    - Restart Apache
+
+- name: flush handlers
+  meta: flush_handlers
+
+- name: ensure Kibana is started on boot
+  service:
+    name: kibana
+    enabled: yes
+    state: restarted
+

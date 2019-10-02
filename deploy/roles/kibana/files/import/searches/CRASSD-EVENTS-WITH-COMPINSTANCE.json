@@ -1,0 +1,16 @@
+{
+  "title": "CRASSD EVENTS WITH COMPINSTANCE",
+  "description": "",
+  "hits": 0,
+  "columns": [
+    "_source"
+  ],
+  "sort": [
+    "@timestamp",
+    "desc"
+  ],
+  "version": 1,
+  "kibanaSavedObjectMeta": {
+    "searchSourceJSON": "{\"index\":\"logstash-*\",\"highlightAll\":true,\"version\":true,\"query\":{\"query_string\":{\"query\":\"tags:crassd  AND data.compInstance:/.*/\",\"analyze_wildcard\":true}},\"filter\":[]}"
+  }
+}

@@ -1,0 +1,66 @@
+---
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Marcelo Perazolo <mperazol@us.ibm.com>
+#---
+
+- name: verify if deb/rpm package exists
+  stat:
+    path: "/tmp/{{ item.file }}"
+  with_items: "{{ logstash_packages }}"
+  register: file_stat
+
+- name: download deb/rpm package
+  get_url:
+    url: "{{ item.item.url }}/{{ item.item.file }}"
+    dest: "/tmp/{{ item.item.file }}"
+  when: item.stat.exists == False
+  with_items: "{{ file_stat.results }}"
+  register: logstash_download
+  until: logstash_download is success
+  retries: 5
+  delay: 2
+
+- name: install Logstash from deb
+  apt:
+    deb: "/tmp/{{ item.file }}"
+    state: present
+  with_items: "{{ logstash_packages }}"
+  when: ansible_os_family == "Debian"
+  register: install_deb
+  until: install_deb is success
+  retries: 5
+  delay: 2
+
+- name: installs Logstash from rpm
+  package:
+    name: "/tmp/{{ item.file }}"
+    state: present
+  with_items: "{{ logstash_packages }}"
+  when: ansible_os_family == "RedHat"
+  register: install
+  until: install is success
+  retries: 5
+  delay: 2
+
+#- name: remove deb/rpm file
+#  file:
+#    path: "/tmp/{{ item.file }}"
+#    state: absent
+#  with_items: "{{ logstash_packages }}"
+
+- name: enable Logstash service
+  service:
+    name: logstash
+    enabled: yes
+

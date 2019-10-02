@@ -1,0 +1,47 @@
+---
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Marcelo Perazolo <mperazol@us.ibm.com>
+#---
+
+netdata_kickstart_url: "https://raw.githubusercontent.com/netdata/netdata-demo-site/master/install-required-packages.sh"
+netdata_kickstart_bin: "/tmp/netdata-required.sh"
+netdata_kickstart_opt: "--dont-wait --non-interactive --ignore-installed netdata-all"
+netdata_kickstart_cmd: "bash {{ netdata_kickstart_bin }} {{ netdata_kickstart_opt }}"
+
+netdata_git_url: "https://github.com/netdata/netdata.git"
+netdata_bld_dir: "/tmp/netdata"
+netdata_install_bin: "netdata-installer.sh"
+netdata_install_opt: "--dont-wait --stable-channel"
+netdata_install_cmd: "bash {{ netdata_install_bin }} {{ netdata_install_opt }}"
+
+netdata_plugins_dir: "/usr/libexec/netdata/plugins.d"
+netdata_plugins_map:
+  - { plugin: "proc",       enabled: "no"  }
+  - { plugin: "diskspace",  enabled: "no"  }
+  - { plugin: "cgroups",    enabled: "no"  }
+  - { plugin: "tc",         enabled: "no"  }
+  - { plugin: "idlejitter", enabled: "no"  }
+  - { plugin: "charts.d",   enabled: "no"  }
+  - { plugin: "fping",      enabled: "no"  }
+  - { plugin: "ioping",     enabled: "no"  }
+  - { plugin: "node.d",     enabled: "no"  }
+  - { plugin: "python.d",   enabled: "no"  }
+  - { plugin: "apps",       enabled: "no"  }
+  - { plugin: "perf",       enabled: "no"  }
+  - { plugin: "slabinfo",   enabled: "no"  }
+  - { plugin: "go.d",       enabled: "no"  }
+
+netdata_crassd_host: "127.0.0.1"
+
+

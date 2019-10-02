@@ -1,0 +1,16 @@
+{
+  "title": "CRASSD EVENTS",
+  "description": "",
+  "hits": 0,
+  "columns": [
+    "_source"
+  ],
+  "sort": [
+    "@timestamp",
+    "desc"
+  ],
+  "version": 1,
+  "kibanaSavedObjectMeta": {
+    "searchSourceJSON": "{\n  \"index\": \"logstash-*\",\n  \"highlightAll\": true,\n  \"version\": true,\n  \"query\": {\n    \"query_string\": {\n      \"query\": \"tags: crassd\",\n      \"analyze_wildcard\": true\n    }\n  },\n  \"filter\": []\n}"
+  }
+}

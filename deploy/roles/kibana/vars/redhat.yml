@@ -1,0 +1,48 @@
+---
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Marcelo Perazolo <mperazol@us.ibm.com>
+#---
+
+kibana_pre_packages:
+  - wget
+  - curl
+  - rsync
+  - httpd
+  - openssl
+  - mod_ssl
+  - unzip
+
+apache_logs: /var/log/httpd
+apache_name: httpd
+apache_group: "apache"
+
+kibana_pip_packages:
+  - httplib2
+  - passlib
+
+kibana_gpgkey: "https://artifacts.elastic.co/GPG-KEY-elasticsearch"
+
+# the yum repository to use for installing kibana from
+kibana_repos:
+  - { name: "Kibana",
+      description: "Kibana repository for 5.6 packages",
+      baseurl: "https://artifacts.elastic.co/packages/5.x/yum",
+      gpgkey: "{{ kibana_gpgkey }}" }
+
+# the yum repository key url
+kibana_keys:
+  - { url: "{{ kibana_gpgkey }}", state: "present" }
+
+install_dir: /opt/kibana
+config_dir: /opt/kibana/config

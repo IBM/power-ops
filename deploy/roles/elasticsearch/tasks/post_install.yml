@@ -1,0 +1,78 @@
+---
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Marcelo Perazolo <mperazol@us.ibm.com>
+#---
+
+- name: create Elasticsearch scripts directory
+  file:
+    path: /etc/elasticsearch/scripts
+    state: directory
+    owner: "{{ elasticsearch_system_user }}"
+    group: "{{ elasticsearch_system_group }}"
+    mode: 0755
+
+- name: deploy Elasticsearch configuration files
+  template:
+    src: "{{ item }}.j2"
+    dest: "/etc/elasticsearch/{{ item }}"
+    owner: "{{ elasticsearch_system_user }}"
+    group: "{{ elasticsearch_system_group }}"
+  with_items:
+    - elasticsearch.yml
+    - logging.yml
+  notify:
+    - Restart Elasticsearch
+
+- name: create Elasticsearch service configuration
+  template:
+    src: "elasticsearch.j2"
+    dest: "/etc/default/elasticsearch"
+    owner: "{{ elasticsearch_system_user }}"
+    group: "{{ elasticsearch_system_group }}"
+  notify:
+    - Restart Elasticsearch
+
+- name: set proper permissions for index dir
+  file:
+    path: "/var/lib/elasticsearch/{{ elasticsearch_cluster}}"
+    state: "directory"
+    owner: "{{ elasticsearch_system_user }}"
+    group: "{{ elasticsearch_system_group }}"
+    recurse: "yes"
+  notify:
+    - Restart Elasticsearch
+
+- name: flush handlers
+  meta: flush_handlers
+
+- name: ensure Elasticsearch is started on boot
+  service:
+    name: elasticsearch
+    enabled: yes
+    state: started
+
+#- name: open firewall port
+#  firewalld:
+#    port: "{{ elasticsearch_http_port }}/tcp"
+#    permanent: true
+#    state: enabled
+#    immediate: true
+#  when: ansible_os_family == "RedHat"
+
+#- name: Stop firewalld
+#  service:
+#    name: firewalld
+#    state: stopped
+#  when: ansible_os_family == "RedHat"
+

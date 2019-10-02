@@ -1,0 +1,61 @@
+---
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Marcelo Perazolo <mperazol@us.ibm.com>
+#---
+
+- name: create needed directories
+  file:
+    path: "{{ item.dest | dirname }}"
+    state: directory
+  with_items: "{{ crassd_configuration_files }}"
+
+- name: reset crassd alert control file
+  file:
+    path: "{{ crassd_configuration_dir }}/bmclastreports.ini"
+    state: absent
+
+- name: deploy configuration files
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items: "{{ crassd_configuration_files }}"
+  notify: "Restart Crassd"
+
+- name: download openbmctool
+  get_url:
+    url: "{{ crassd_openbmctool_url }}"
+    dest: "{{ crassd_openbmctool_bin }}"
+    mode: 0755
+  register: downloaded1
+  until: downloaded1 is success
+  retries: 5
+  delay: 2
+  notify: "Restart Netdata"
+
+- name: download policyTable
+  get_url:
+    url: "{{ crassd_policyTable_url }}"
+    dest: "{{ crassd_policyTable_lib }}"
+    mode: 0644
+  register: downloaded2
+  until: downloaded2 is success
+  retries: 5
+  delay: 2
+  notify: "Restart Netdata"
+
+- name: ensure service is started
+  service:
+    name: ibm-crassd
+    enabled: yes
+    state: restarted

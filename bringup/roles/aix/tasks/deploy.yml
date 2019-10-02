@@ -1,0 +1,81 @@
+---
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Marcelo Perazolo <mperazol@us.ibm.com>
+#---
+
+    - name: set hostname
+      command: "hostname {{ inventory_hostname }}"
+
+    - name: set /etc/hosts
+      lineinfile:
+        dest: "/etc/hosts"
+        regexp: '.*{{ host }}$'
+        line: "{{ hostvars[host].ansible_host }} {{ host }}"
+        state: present
+      when: hostvars[host].ansible_default_ipv4.address is defined
+      loop: "{{ groups['all'] }}"
+      loop_control:
+        loop_var: host
+        label: "{{ host }}"
+
+    - name: enable ssh for root
+      lineinfile:
+        dest: "/etc/ssh/sshd_config"
+        regexp: "^[#]*PermitRootLogin"
+        line: "PermitRootLogin yes"
+        state: present
+
+    - name: restart sshd
+      service:
+        name: "sshd"
+        state: restarted
+
+    - name: increase paging space to 16GB
+      shell: |
+        chvg -g rootvg >/dev/null 2>&1
+        lsps paging00 >/dev/null 2>&1 || mkps -s 32 -a -n rootvg
+        lsps hd6 | grep hd6 | awk '{print $4}' | grep 1024MB || chps -s 16 hd6
+
+    - name: configure maxuproc and iocp0
+      shell: |
+        chdev -l sys0 -a maxuproc='16384'
+        chdev -l iocp0 -P -a autoconfig='available'
+        cfgmgr
+
+    - name: configure limits
+      template:
+        src: limits.j2
+        dest: "/etc/security/limits"
+        mode: 0640
+        owner: "root"
+        group: "security"
+
+    - name: configure root user
+      include_tasks: "set_user.yml"
+      vars:
+        username: "root"
+        groupname: "system"
+        homedir: ""
+        oracle_home: "/"
+        oracle_sid: "sid"
+        extrapath: "."
+
+    - name: configure rootvg filesystems
+      command: "chfs -A yes -a size={{ bootmap.size }} {{ bootmap.mp }}"
+      loop: "{{ bootmaps }}"
+      loop_control:
+        loop_var: bootmap
+        label: "{{ bootmap.mp }}"
+      when: (bootmaps is defined) and (bootmaps | length > 0)
+

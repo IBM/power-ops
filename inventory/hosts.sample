@@ -1,0 +1,13 @@
+# sample hosts file
+
+
+[endpoint]
+@pops2-endpoint-2 ansible_host=192.168.0.202 ansible_ssh_user=ubuntu ansible_python_interpreter=/usr/bin/python3 ansible_os_family=Debian
+@pops2-endpoint-1 ansible_host=192.168.0.201 ansible_ssh_user=cloud-user ansible_python_interpreter=/usr/bin/python ansible_os_family=RedHat
+[builder]
+@pops2-endpoint-2 ansible_host=192.168.0.202 ansible_ssh_user=ubuntu ansible_python_interpreter=/usr/bin/python3 ansible_os_family=Debian
+@pops2-endpoint-1 ansible_host=192.168.0.201 ansible_ssh_user=cloud-user ansible_python_interpreter=/usr/bin/python ansible_os_family=RedHat
+[controller]
+@pops2-controller ansible_host=192.168.0.200 ansible_ssh_user=cloud-user ansible_python_interpreter=/usr/bin/python ansible_os_family=RedHat
+[repo]
+@pops2-controller ansible_host=192.168.0.200 ansible_ssh_user=cloud-user ansible_python_interpreter=/usr/bin/python ansible_os_family=RedHat

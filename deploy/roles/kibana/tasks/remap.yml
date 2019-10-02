@@ -1,0 +1,126 @@
+---
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Marcelo Perazolo <mperazol@us.ibm.com>
+#---
+
+- name: ensure Elasticsearch service is started
+  service:
+    name: elasticsearch
+    state: restarted
+
+- name: wait for Elasticsearch to start
+  wait_for:
+    host: "{{ ansible_host }}"
+    port: "{{ elasticsearch_http_port }}"
+
+- name: create temp directory
+  file:
+    path: "{{ kibana_temp_directory }}"
+    state: directory
+    mode: 0700
+
+- name: copy configuration files into server
+  synchronize:
+    src:  "./"
+    dest: "{{ kibana_temp_directory }}"
+    mode: push
+    compress: yes
+
+- name: import dashboards, visualizations and searches
+  shell: "./load.sh -l {{ elasticsearch_ip }}:{{ elasticsearch_http_port }}"
+  args:
+    chdir: "{{ kibana_temp_directory }}"
+  environment:
+    no_proxy: "{{ elasticsearch_ip }}"
+  notify:
+    - Restart Elasticsearch
+
+#- name: remove temp directory
+#  file:
+#    path: "{{ kibana_temp_directory }}"
+#    state: absent
+
+- name: delete indices, patterns and templates
+  uri:
+    method: "DELETE"
+    url: "http://{{ ansible_host }}:{{ elasticsearch_http_port }}/{{ item }}"
+    status_code: 200,201,409
+  with_items:
+    - "logstash-*"
+    - ".kibana/index-pattern/logstash-*"
+    - "_template/logstash"
+    - "metricbeat-*"
+    - ".kibana/index-pattern/metricbeat-*"
+    - "_template/metricbeat"
+  environment:
+    no_proxy: "{{ elasticsearch_ip }}"
+  notify:
+    - Restart Elasticsearch
+  ignore_errors: True
+
+- name: import mapping templates
+  uri:
+    method: "PUT"
+    url: "http://{{ elasticsearch_ip }}:{{ elasticsearch_http_port}}/_template/{{ item }}"
+    body: "{{ lookup('file', filename) }}"
+    body_format: "json"
+    status_code: 200,201,409
+  vars:
+    filename: "files/mappings/{{ item }}.json"
+  with_items:
+    - "logstash"
+    - "metricbeat"
+  environment:
+    no_proxy: "{{ elasticsearch_ip }}"
+  notify:
+    - Restart Elasticsearch
+
+- name: import index patterns
+  uri:
+    method: "PUT"
+    url: "http://{{ elasticsearch_ip }}:{{ elasticsearch_http_port}}/.kibana/index-pattern/{{ item }}-*?op_type=create"
+    body: "{{ lookup('file', filename) }}"
+    body_format: "json"
+    status_code: 200,201,409
+  with_items:
+    - "logstash"
+    - "metricbeat"
+  vars:
+    filename: "files/indices/{{ item }}.json"
+  environment:
+    no_proxy: "{{ elasticsearch_ip }}"
+  notify:
+    - Restart Elasticsearch
+
+- name: get version
+  shell: "cat package.json | python -c 'import json,sys; obj=json.load(sys.stdin); print obj[\"version\"];'"
+  args:
+    chdir: "{{ install_dir }}"
+  register: kibana_version
+
+- name: set default index
+  uri:
+    method: "PUT"
+    url: "http://{{ elasticsearch_ip }}:{{ elasticsearch_http_port}}/.kibana/{{ item.where }}"
+    body: " {{ item.what }}"
+    body_format: "json"
+    status_code: 200,201,409
+  with_items:
+    - where: "config/{{ kibana_version.stdout }}"
+      what: '{"defaultIndex" : "logstash-*"}'
+  environment:
+    no_proxy: "{{ elasticsearch_ip }}"
+  notify:
+    - Restart Elasticsearch
+

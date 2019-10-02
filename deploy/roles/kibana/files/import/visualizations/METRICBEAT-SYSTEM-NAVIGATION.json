@@ -1,0 +1,10 @@
+{
+  "title": "Metricbeat Navigation",
+  "description": "",
+  "kibanaSavedObjectMeta": {
+    "searchSourceJSON": "{\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}},\"filter\":[]}"
+  },
+  "uiStateJSON": "{}",
+  "version": 1,
+  "visState": "{\"title\":\"METRICBEAT NAVIGATION\",\"type\":\"markdown\",\"params\":{\"markdown\":\"- [Overview](#/dashboard/Metricbeat-overview)\\n\\n- [CPU](#/dashboard/Metricbeat-cpu)\\n\\n- [Memory](#/dashboard/Metricbeat-memory)\\n\\n- [Processes](#/dashboard/Metricbeat-processes)\\n\\n- [Network](#/dashboard/Metricbeat-network)\\n\\n- [Storage](#/dashboard/Metricbeat-storage)\\n\\n- [Filesystems](#/dashboard/Metricbeat-filesystems)\\n\\n- [Servers](#/dashboard/Metricbeat-servers)\"},\"aggs\":[],\"listeners\":{}}"
+}

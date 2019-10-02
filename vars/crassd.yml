@@ -1,0 +1,40 @@
+---
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Marcelo Perazolo <mperazol@us.ibm.com>
+#---
+
+crassd_url: "https://github.com/open-power-ref-design-toolkit/ibm-crassd.git"
+crassd_dir: "{{ bld_dir }}/crassd"
+crassd_version: "power-ops"
+
+nodes:
+  - { "bmcHostname": "192.168.0.10", "xcatNodeName": "host1-ipmi", "accessType": "ipmi",        "username": "ADMIN", "password": "ADMIN" }
+  - { "bmcHostname": "192.168.0.11", "xcatNodeName": "host2-obmc", "accessType": "openbmcRest", "username": "ADMIN", "password": "ADMIN" }
+
+crassd_install_dir: "/opt/ibm/ras"
+
+crassd_configuration_dir: "{{ crassd_install_dir }}/etc"
+crassd_configuration_files:
+  - { src: "ibm-crassd.config.j2", dest: "{{ crassd_configuration_dir }}/ibm-crassd.config" }
+
+crassd_logstash_host: "{{ ansible_host }}"
+crassd_logstash_port: 5148
+
+crassd_binary_dir: "{{ crassd_install_dir }}/bin"
+crassd_openbmctool_bin: "{{ crassd_binary_dir }}/openbmctool.py"
+crassd_openbmctool_url: "https://raw.githubusercontent.com/openbmc/openbmc-tools/master/thalerj/openbmctool.py"
+
+crassd_library_dir: "{{ crassd_install_dir }}/lib"
+crassd_policyTable_lib: "{{ crassd_library_dir }}/policyTable.json"
+crassd_policyTable_url: "https://raw.githubusercontent.com/openbmc/openbmc-tools/master/thalerj/policyTable.json"
