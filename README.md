@@ -1,5 +1,5 @@
 # The power-ops repository
-The power-ops repository is both an Ansible repository and a repository for auxiliary code or scripts, intended to host community-developed automated provisioning and configuration of Operational Management tools capable of running and/or managing OpenPOWER Systems. It is hosted in GitHub at the following location:
+The power-ops repository is both an Ansible repository and a repository for auxiliary code or scripts, intended to host community-developed automated provisioning and configuration of Operational Management tools capable of running and/or managing OpenPOWER Systems. It is hosted in GitHub at the following location:\
 [https://github.com/IBM/power-ops/](https://github.com/IBM/power-ops/tree/master/)
 &nbsp;
 # Contents
@@ -7,6 +7,7 @@ There are 3 main sections in this repository:
 - *bringup* contains playbooks to bring up and teardown OpenPOWER nodes as either controllers or endpoints in the Operational Management infrastructure. You can choose to use either bare metal nodes (in which case you can skip the "bringup.yml" playbook) or to use a virtualization infrastructure to create virtual nodes (currently only the Nutanix AHV hypervisor is supported, but we intend to support more options in the future).
 - *build* contains playbooks to create rpm or deb packages of required tools when no packages are yet available for the Power architecture. These packages are later pushed into a "repository" node and make available for the "deploy" playbooks for installation on the controller or endpoint nodes.
 - *deploy* contains playbooks to install and configure the Operational Management stack on deployment nodes according to their role: either controllers (whiere the server-side components run) or endpoints (where client-side components run). The endpoint nodes consist of the majority of the nodes provisioned, and controller nodes can be sized and created as needed depending on the number of endpoints to be monitored. Different tools have different controller sizing needs depending on the number of endpoints they manage or the amount of data that they keep.
+
 In addition, the following sections hold important deployment data:
 - *inventory* contains the hosts file that is either automatically generated (if your infrastructure is virtual and created via the bringup.yml playbook) or where you manually list the bare metal nodes you want to provision.
 - *scripts* contains sample scripts that show how to properly call Ansible to execute the playbooks, for deifferent scenarios, or contains additional auxiliary scripts.
