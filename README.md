@@ -37,7 +37,7 @@ sed -i "s/passw0rd/<your_new_password_here>/g" state/vault.key
 ```
 
 4. Generate new encoded secrets for your deployment. These are the variables you should look at:
-- *<OS>.yml:password* (where OS is aix, debian or redhat). This is the password that will be set for the root user at each of the nodes in the cluster (done in the prepare.yml playbook in the bringup section).
+- *&lt;OS&gt;.yml:password* (where OS is aix, debian or redhat). This is the password that will be set for the root user at each of the nodes in the cluster (done in the prepare.yml playbook in the bringup section).
 - (if creating virtual nodes) *nutanix.yml/clusters/<your_cluster_name>:password*. This is the password for your Nutanix cluster user. You may also want to consider changing the *username* variable (which uses the "admin" user by default).
 ```shell
 scripts/enc.sh "<your_new_secret_password>"
